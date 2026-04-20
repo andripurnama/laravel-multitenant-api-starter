@@ -16,7 +16,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
+        'guard' => env('AUTH_GUARD', 'api'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -41,6 +41,12 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+        ],
+
+        'api' => [
+            'driver' => 'passport',
+            'provider' => 'users',
+            'hash' => false,
         ],
     ],
 
@@ -113,5 +119,22 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Passport Token Lifetimes
+    |--------------------------------------------------------------------------
+    |
+    | These values control the lifetime of OAuth2 tokens issued by Passport.
+    | Access tokens are short-lived for security, while refresh tokens allow
+    | obtaining new access tokens without re-authentication.
+    |
+    */
+
+    'passport' => [
+        'access_token_ttl' => env('PASSPORT_ACCESS_TOKEN_TTL', 15), // minutes
+        'refresh_token_ttl' => env('PASSPORT_REFRESH_TOKEN_TTL', 43200), // minutes (30 days)
+        'personal_access_token_ttl' => env('PASSPORT_PERSONAL_ACCESS_TOKEN_TTL', 525600), // minutes (1 year)
+    ],
 
 ];
