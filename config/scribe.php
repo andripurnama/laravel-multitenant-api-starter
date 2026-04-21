@@ -14,7 +14,7 @@ return [
     'title' => config('app.name').' API Documentation',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => '',
+    'description' => 'Multi-tenant API with header-based tenant isolation.',
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
     'intro_text' => <<<'INTRO'
@@ -22,6 +22,24 @@ return [
 
             <aside>As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
             You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
+
+            ## Multi-Tenant Architecture
+
+            **Important:** All API requests must include the `X-Tenant-ID` header to specify the tenant context.
+
+            ```
+            X-Tenant-ID: 1
+            ```
+
+            Without this header, requests will fail with a 400 error: `{"error": "Tenant ID required"}`
+
+            ### Test Tenant
+            A test tenant is available for development:
+            - **Tenant ID**: 1
+            - **Tenant Name**: Test Tenant
+            - **Tenant Slug**: test-tenant
+
+            Use `X-Tenant-ID: 1` in all your API requests during testing.
         INTRO,
 
     // The base URL displayed in the docs.
@@ -221,6 +239,7 @@ return [
             Strategies\StaticData::withSettings(data: [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
+                'X-Tenant-ID' => '1',
             ]),
         ],
         'urlParameters' => [
