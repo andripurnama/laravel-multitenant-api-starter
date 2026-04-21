@@ -915,3 +915,380 @@ test('refreshToken with invalid refresh token fails', function () {
     // Attempt to refresh with invalid token should fail
     $service->refreshToken('invalid-refresh-token');
 })->throws(InvalidCredentialsException::class, 'Invalid refresh token')->group('auth-service', 'token-refresh');
+
+// Task 8.4: Test password reset flow
+// **Property 22: Password Reset Token Security**
+// **Property 23: Password Reset Token Validation**
+// **Property 24: Password Reset Session Invalidation**
+// **Validates: Requirements 12.1, 13.1, 13.2, 13.5, 13.6**
+
+test('password reset request generates secure token', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $result = $service->requestPasswordReset('test@example.com', $tenant->id);
+
+    expect($result)->toBeTrue();
+    
+    // Verify token was stored in database
+    $this->assertDatabaseHas('password_reset_tokens', [
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+    ]);
+    
+    // Verify token is hashed (not plain text)
+    $resetRecord = DB::table('password_reset_tokens')
+        ->where('email', 'test@example.com')
+        ->where('tenant_id', $tenant->id)
+        ->first();
+    
+    expect($resetRecord->token)->not->toBeNull()
+        ->and(strlen($resetRecord->token))->toBeGreaterThan(50) // Hashed tokens are long
+        ->and($resetRecord->created_at)->not->toBeNull();
+})->group('auth-service', 'password-reset');
+
+test('password reset with valid token updates password', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Create a reset token
+    $plainToken = 'reset-token-123';
+    $hashedToken = Hash::make($plainToken);
+    
+    DB::table('password_reset_tokens')->insert([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+        'token' => $hashedToken,
+        'created_at' => now(),
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $tokenRepo->shouldReceive('revokeAllForUser')
+        ->once()
+        ->with($user->id)
+        ->andReturn(1);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $result = $service->resetPassword($plainToken, 'test@example.com', 'newpassword');
+
+    expect($result)->toBeTrue();
+    
+    // Verify password was updated
+    $updatedUser = User::find($user->id);
+    expect(Hash::check('newpassword', $updatedUser->password))->toBeTrue()
+        ->and(Hash::check('oldpassword', $updatedUser->password))->toBeFalse();
+    
+    // Verify token was deleted
+    $this->assertDatabaseMissing('password_reset_tokens', [
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+    ]);
+})->group('auth-service', 'password-reset');
+
+test('password reset with invalid token fails', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Create a reset token
+    $hashedToken = Hash::make('correct-token');
+    
+    DB::table('password_reset_tokens')->insert([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+        'token' => $hashedToken,
+        'created_at' => now(),
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    // Try to reset with wrong token
+    $service->resetPassword('wrong-token', 'test@example.com', 'newpassword');
+})->throws(App\Exceptions\Auth\InvalidResetTokenException::class)->group('auth-service', 'password-reset');
+
+test('password reset revokes all existing tokens', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Create a reset token
+    $plainToken = 'reset-token-123';
+    $hashedToken = Hash::make($plainToken);
+    
+    DB::table('password_reset_tokens')->insert([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+        'token' => $hashedToken,
+        'created_at' => now(),
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    // Verify that revokeAllForUser is called (Requirement 13.5)
+    $tokenRepo->shouldReceive('revokeAllForUser')
+        ->once()
+        ->with($user->id)
+        ->andReturn(2); // Simulate 2 tokens revoked
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $result = $service->resetPassword($plainToken, 'test@example.com', 'newpassword');
+
+    expect($result)->toBeTrue();
+})->group('auth-service', 'password-reset');
+
+test('password reset token expires after configured time', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Create an expired reset token (61 minutes old, default expiration is 60)
+    $plainToken = 'reset-token-123';
+    $hashedToken = Hash::make($plainToken);
+    
+    DB::table('password_reset_tokens')->insert([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+        'token' => $hashedToken,
+        'created_at' => now()->subMinutes(61),
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $service->resetPassword($plainToken, 'test@example.com', 'newpassword');
+})->throws(App\Exceptions\Auth\InvalidResetTokenException::class, 'expired')->group('auth-service', 'password-reset');
+
+test('password reset token cannot be reused after successful reset', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Create a reset token
+    $plainToken = 'reset-token-123';
+    $hashedToken = Hash::make($plainToken);
+    
+    DB::table('password_reset_tokens')->insert([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+        'token' => $hashedToken,
+        'created_at' => now(),
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    // Only expect one call since the second attempt will fail before reaching revoke
+    $tokenRepo->shouldReceive('revokeAllForUser')
+        ->once()
+        ->with($user->id)
+        ->andReturn(1);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    // First reset should succeed
+    $result = $service->resetPassword($plainToken, 'test@example.com', 'newpassword');
+    expect($result)->toBeTrue();
+    
+    // Verify token was deleted
+    $this->assertDatabaseMissing('password_reset_tokens', [
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Second attempt with same token should fail (token no longer exists)
+    $service->resetPassword($plainToken, 'test@example.com', 'anotherpassword');
+})->throws(App\Exceptions\Auth\InvalidResetTokenException::class)->group('auth-service', 'password-reset');
+
+test('password reset request returns true for non-existent user to prevent enumeration', function () {
+    $tenant = Tenant::factory()->create();
+    
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $result = $service->requestPasswordReset('nonexistent@example.com', $tenant->id);
+
+    // Should return true even though user doesn't exist (Requirement 12.5)
+    expect($result)->toBeTrue();
+    
+    // Verify no token was stored
+    $this->assertDatabaseMissing('password_reset_tokens', [
+        'email' => 'nonexistent@example.com',
+    ]);
+})->group('auth-service', 'password-reset');
+
+test('password reset request returns true for wrong tenant to prevent enumeration', function () {
+    $tenant1 = Tenant::factory()->create();
+    $tenant2 = Tenant::factory()->create();
+    
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant1->id,
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $result = $service->requestPasswordReset('test@example.com', $tenant2->id);
+
+    // Should return true even though tenant doesn't match (Requirement 12.5)
+    expect($result)->toBeTrue();
+    
+    // Verify no token was stored for wrong tenant
+    $this->assertDatabaseMissing('password_reset_tokens', [
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant2->id,
+    ]);
+})->group('auth-service', 'password-reset');
+
+test('password reset stores token with expiration timestamp', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $result = $service->requestPasswordReset('test@example.com', $tenant->id);
+
+    expect($result)->toBeTrue();
+    
+    // Verify token was stored with timestamp
+    $resetRecord = DB::table('password_reset_tokens')
+        ->where('email', 'test@example.com')
+        ->where('tenant_id', $tenant->id)
+        ->first();
+    
+    expect($resetRecord)->not->toBeNull()
+        ->and($resetRecord->created_at)->not->toBeNull();
+    
+    // Verify the timestamp is recent (within last 5 seconds)
+    $createdAt = \Carbon\Carbon::parse($resetRecord->created_at);
+    expect($createdAt->diffInSeconds(now()))->toBeLessThan(5);
+})->group('auth-service', 'password-reset');
+
+test('password reset fails for non-existent user', function () {
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $service->resetPassword('some-token', 'nonexistent@example.com', 'newpassword');
+})->throws(App\Exceptions\Auth\InvalidResetTokenException::class)->group('auth-service', 'password-reset');
+
+test('password reset fails when no token record exists', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    // No token record in database
+    $service->resetPassword('some-token', 'test@example.com', 'newpassword');
+})->throws(App\Exceptions\Auth\InvalidResetTokenException::class)->group('auth-service', 'password-reset');
+
+test('password reset updates password with bcrypt hash', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('oldpassword'),
+        'tenant_id' => $tenant->id,
+    ]);
+
+    // Create a reset token
+    $plainToken = 'reset-token-123';
+    $hashedToken = Hash::make($plainToken);
+    
+    DB::table('password_reset_tokens')->insert([
+        'email' => 'test@example.com',
+        'tenant_id' => $tenant->id,
+        'token' => $hashedToken,
+        'created_at' => now(),
+    ]);
+
+    $userRepo = new \App\Repositories\Eloquent\EloquentUserRepository();
+    $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+    $tenantRepo = Mockery::mock(TenantRepositoryInterface::class);
+
+    $tokenRepo->shouldReceive('revokeAllForUser')
+        ->once()
+        ->with($user->id)
+        ->andReturn(1);
+
+    $service = new AuthService($userRepo, $tokenRepo, $tenantRepo);
+
+    $plainPassword = 'myNewSecurePassword123!';
+    $result = $service->resetPassword($plainToken, 'test@example.com', $plainPassword);
+
+    expect($result)->toBeTrue();
+    
+    // Verify password is hashed with bcrypt
+    $updatedUser = User::find($user->id);
+    expect($updatedUser->password)->not->toBe($plainPassword)
+        ->and(Hash::check($plainPassword, $updatedUser->password))->toBeTrue()
+        ->and(str_starts_with($updatedUser->password, '$2y$'))->toBeTrue(); // bcrypt prefix
+    
+    // Verify plain password is not in database
+    $this->assertDatabaseMissing('users', [
+        'email' => 'test@example.com',
+        'password' => $plainPassword,
+    ]);
+})->group('auth-service', 'password-reset');
