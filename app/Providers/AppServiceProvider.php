@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,6 +42,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Contracts\AuthServiceInterface::class,
             \App\Services\AuthService::class
         );
+
+        $this->app->bind(
+            \App\Services\Contracts\PermissionServiceInterface::class,
+            \App\Services\PermissionService::class
+        );
+
+        $this->app->bind(
+            \App\Services\Contracts\TokenServiceInterface::class,
+            \App\Services\TokenService::class
+        );
     }
 
     /**
@@ -50,8 +59,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Passport::tokensExpireIn(now()->addDays(15));
-        Passport::refreshTokensExpireIn(now()->addDays(30));
-        Passport::personalAccessTokensExpireIn(now()->addMonths(6));
+        // Sanctum token expiration is configured in config/sanctum.php
+        // or via SANCTUM_EXPIRATION environment variable
     }
 }
