@@ -44,7 +44,7 @@ return [
         ],
 
         'api' => [
-            'driver' => 'passport',
+            'driver' => 'sanctum',
             'provider' => 'users',
             'hash' => false,
         ],
@@ -122,19 +122,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Passport Token Lifetimes
+    | Sanctum Token Lifetimes
     |--------------------------------------------------------------------------
     |
-    | These values control the lifetime of OAuth2 tokens issued by Passport.
-    | Access tokens are short-lived for security, while refresh tokens allow
-    | obtaining new access tokens without re-authentication.
+    | These values control the lifetime of tokens issued by Sanctum.
+    | Tokens can be set to expire after a certain number of minutes,
+    | or can be set to never expire by setting the value to null.
     |
     */
 
-    'passport' => [
-        'access_token_ttl' => env('PASSPORT_ACCESS_TOKEN_TTL', 15), // minutes
-        'refresh_token_ttl' => env('PASSPORT_REFRESH_TOKEN_TTL', 43200), // minutes (30 days)
-        'personal_access_token_ttl' => env('PASSPORT_PERSONAL_ACCESS_TOKEN_TTL', 525600), // minutes (1 year)
+    'sanctum' => [
+        'expiration' => env('SANCTUM_EXPIRATION', null), // minutes (null = never expires)
+        'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
     ],
 
 ];
