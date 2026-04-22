@@ -19,6 +19,13 @@ class PermissionController extends Controller
         private readonly UserRepositoryInterface $userRepository
     ) {}
 
+    /**
+     * Assign role to user
+     * 
+     * Assign a role to a user within a specific tenant context.
+     * 
+     * @authenticated
+     */
     public function assignRole(AssignRoleRequest $request): JsonResponse
     {
         $user = $this->userRepository->find($request->input('user_id'));
@@ -32,6 +39,13 @@ class PermissionController extends Controller
         return response()->json(['message' => 'Role assigned successfully']);
     }
 
+    /**
+     * Remove role from user
+     * 
+     * Remove a role from a user within a specific tenant context.
+     * 
+     * @authenticated
+     */
     public function removeRole(Request $request): JsonResponse
     {
         $user = $this->userRepository->find($request->input('user_id'));
@@ -45,6 +59,13 @@ class PermissionController extends Controller
         return response()->json(['message' => 'Role removed successfully']);
     }
 
+    /**
+     * Assign permission to role
+     * 
+     * Assign a permission to a role within a specific tenant context.
+     * 
+     * @authenticated
+     */
     public function assignPermission(AssignPermissionRequest $request): JsonResponse
     {
         $this->permissionService->assignPermissionToRole(
@@ -56,6 +77,13 @@ class PermissionController extends Controller
         return response()->json(['message' => 'Permission assigned successfully']);
     }
 
+    /**
+     * Create role
+     * 
+     * Create a new role within a specific tenant context.
+     * 
+     * @authenticated
+     */
     public function createRole(Request $request): JsonResponse
     {
         $role = $this->permissionService->createRole(
@@ -67,6 +95,13 @@ class PermissionController extends Controller
         return (new RoleResource($role))->response()->setStatusCode(201);
     }
 
+    /**
+     * Sync role permissions
+     * 
+     * Synchronize permissions for a role within a specific tenant context.
+     * 
+     * @authenticated
+     */
     public function syncRolePermissions(Request $request, string $roleName): JsonResponse
     {
         $this->permissionService->syncRolePermissions(
