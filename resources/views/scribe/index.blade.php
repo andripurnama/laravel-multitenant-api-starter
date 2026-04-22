@@ -87,31 +87,28 @@
                                 <a href="#endpoints-GETapi-auth-email-verify--token-">GET api/auth/email/verify/{token}</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-auth-logout">
-                                <a href="#endpoints-POSTapi-auth-logout">POST api/auth/logout</a>
-                            </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-auth-refresh">
-                                <a href="#endpoints-POSTapi-auth-refresh">POST api/auth/refresh</a>
+                                <a href="#endpoints-POSTapi-auth-logout">Logout</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-GETapi-auth-profile">
-                                <a href="#endpoints-GETapi-auth-profile">GET api/auth/profile</a>
+                                <a href="#endpoints-GETapi-auth-profile">Get user profile</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-auth-email-verify-send">
-                                <a href="#endpoints-POSTapi-auth-email-verify-send">POST api/auth/email/verify-send</a>
+                                <a href="#endpoints-POSTapi-auth-email-verify-send">Send email verification</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-permissions-assign-role">
-                                <a href="#endpoints-POSTapi-permissions-assign-role">POST api/permissions/assign-role</a>
+                                <a href="#endpoints-POSTapi-permissions-assign-role">Assign role to user</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-permissions-remove-role">
-                                <a href="#endpoints-POSTapi-permissions-remove-role">POST api/permissions/remove-role</a>
+                                <a href="#endpoints-POSTapi-permissions-remove-role">Remove role from user</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-permissions-assign-permission">
-                                <a href="#endpoints-POSTapi-permissions-assign-permission">POST api/permissions/assign-permission</a>
+                                <a href="#endpoints-POSTapi-permissions-assign-permission">Assign permission to role</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-roles">
-                                <a href="#endpoints-POSTapi-roles">POST api/roles</a>
+                                <a href="#endpoints-POSTapi-roles">Create role</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="endpoints-POSTapi-roles--role--permissions">
-                                <a href="#endpoints-POSTapi-roles--role--permissions">POST api/roles/{role}/permissions</a>
+                                <a href="#endpoints-POSTapi-roles--role--permissions">Sync role permissions</a>
                             </li>
                                                                         </ul>
                             </ul>
@@ -124,7 +121,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: April 21, 2026</li>
+        <li>Last updated: April 22, 2026</li>
     </ul>
 </div>
 
@@ -160,7 +157,9 @@ A test tenant is available for development:
 Use `X-Tenant-ID: 1` in all your API requests during testing.</code></pre>
 
         <h1 id="authenticating-requests">Authenticating requests</h1>
-<p>This API is not authenticated.</p>
+<p>To authenticate requests, include an <strong><code>Authorization</code></strong> header with the value <strong><code>"Bearer {YOUR_ACCESS_TOKEN}"</code></strong>.</p>
+<p>All authenticated endpoints are marked with a <code>requires authentication</code> badge in the documentation below.</p>
+<p>You can retrieve your access token by logging in via the <code>POST /api/auth/login</code> endpoint. The token should be included in the <code>Authorization</code> header as a Bearer token: <code>Authorization: Bearer {token}</code>.</p>
 
         <h1 id="endpoints">Endpoints</h1>
 
@@ -974,12 +973,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                     </form>
 
-                    <h2 id="endpoints-POSTapi-auth-logout">POST api/auth/logout</h2>
+                    <h2 id="endpoints-POSTapi-auth-logout">Logout</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Revoke the current user's access token.</p>
 
 <span id="example-requests-POSTapi-auth-logout">
 <blockquote>Example request:</blockquote>
@@ -988,6 +988,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/auth/logout" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1"</code></pre></div>
@@ -999,6 +1000,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -1031,7 +1033,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-auth-logout" data-method="POST"
       data-path="api/auth/logout"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -1061,6 +1063,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/auth/logout</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-auth-logout"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -1099,137 +1113,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-POSTapi-auth-refresh">POST api/auth/refresh</h2>
+                    <h2 id="endpoints-GETapi-auth-profile">Get user profile</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
-
-<span id="example-requests-POSTapi-auth-refresh">
-<blockquote>Example request:</blockquote>
-
-
-<div class="bash-example">
-    <pre><code class="language-bash">curl --request POST \
-    "http://laravel-multi-tenant-api-boilerplate.test/api/auth/refresh" \
-    --header "Content-Type: application/json" \
-    --header "Accept: application/json" \
-    --header "X-Tenant-ID: 1"</code></pre></div>
-
-
-<div class="javascript-example">
-    <pre><code class="language-javascript">const url = new URL(
-    "http://laravel-multi-tenant-api-boilerplate.test/api/auth/refresh"
-);
-
-const headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "X-Tenant-ID": "1",
-};
-
-
-fetch(url, {
-    method: "POST",
-    headers,
-}).then(response =&gt; response.json());</code></pre></div>
-
-</span>
-
-<span id="example-responses-POSTapi-auth-refresh">
-</span>
-<span id="execution-results-POSTapi-auth-refresh" hidden>
-    <blockquote>Received response<span
-                id="execution-response-status-POSTapi-auth-refresh"></span>:
-    </blockquote>
-    <pre class="json"><code id="execution-response-content-POSTapi-auth-refresh"
-      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
-</span>
-<span id="execution-error-POSTapi-auth-refresh" hidden>
-    <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-POSTapi-auth-refresh">
-
-Tip: Check that you&#039;re properly connected to the network.
-If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
-You can check the Dev Tools console for debugging information.</code></pre>
-</span>
-<form id="form-POSTapi-auth-refresh" data-method="POST"
-      data-path="api/auth/refresh"
-      data-authed="0"
-      data-hasfiles="0"
-      data-isarraybody="0"
-      autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('POSTapi-auth-refresh', this);">
-    <h3>
-        Request&nbsp;&nbsp;&nbsp;
-                    <button type="button"
-                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-POSTapi-auth-refresh"
-                    onclick="tryItOut('POSTapi-auth-refresh');">Try it out ⚡
-            </button>
-            <button type="button"
-                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-POSTapi-auth-refresh"
-                    onclick="cancelTryOut('POSTapi-auth-refresh');" hidden>Cancel 🛑
-            </button>&nbsp;&nbsp;
-            <button type="submit"
-                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-POSTapi-auth-refresh"
-                    data-initial-text="Send Request 💥"
-                    data-loading-text="⏱ Sending..."
-                    hidden>Send Request 💥
-            </button>
-            </h3>
-            <p>
-            <small class="badge badge-black">POST</small>
-            <b><code>api/auth/refresh</code></b>
-        </p>
-                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="POSTapi-auth-refresh"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="POSTapi-auth-refresh"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>X-Tenant-ID</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="X-Tenant-ID"                data-endpoint="POSTapi-auth-refresh"
-               value="1"
-               data-component="header">
-    <br>
-<p>Example: <code>1</code></p>
-            </div>
-                        </form>
-
-                    <h2 id="endpoints-GETapi-auth-profile">GET api/auth/profile</h2>
-
-<p>
-</p>
-
-
+<p>Retrieve the authenticated user's profile information including roles and permissions.</p>
 
 <span id="example-requests-GETapi-auth-profile">
 <blockquote>Example request:</blockquote>
@@ -1238,6 +1128,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
     --get "http://laravel-multi-tenant-api-boilerplate.test/api/auth/profile" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1"</code></pre></div>
@@ -1249,6 +1140,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -1297,7 +1189,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-GETapi-auth-profile" data-method="GET"
       data-path="api/auth/profile"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -1327,6 +1219,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/auth/profile</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="GETapi-auth-profile"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -1365,12 +1269,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-POSTapi-auth-email-verify-send">POST api/auth/email/verify-send</h2>
+                    <h2 id="endpoints-POSTapi-auth-email-verify-send">Send email verification</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Send a verification email to the authenticated user.</p>
 
 <span id="example-requests-POSTapi-auth-email-verify-send">
 <blockquote>Example request:</blockquote>
@@ -1379,6 +1284,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/auth/email/verify-send" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1"</code></pre></div>
@@ -1390,6 +1296,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -1422,7 +1329,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-auth-email-verify-send" data-method="POST"
       data-path="api/auth/email/verify-send"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -1452,6 +1359,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/auth/email/verify-send</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-auth-email-verify-send"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -1490,12 +1409,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-POSTapi-permissions-assign-role">POST api/permissions/assign-role</h2>
+                    <h2 id="endpoints-POSTapi-permissions-assign-role">Assign role to user</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Assign a role to a user within a specific tenant context.</p>
 
 <span id="example-requests-POSTapi-permissions-assign-role">
 <blockquote>Example request:</blockquote>
@@ -1504,6 +1424,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/permissions/assign-role" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1" \
@@ -1521,6 +1442,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -1559,7 +1481,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-permissions-assign-role" data-method="POST"
       data-path="api/permissions/assign-role"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -1589,6 +1511,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/permissions/assign-role</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-permissions-assign-role"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -1664,12 +1598,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
         </div>
         </form>
 
-                    <h2 id="endpoints-POSTapi-permissions-remove-role">POST api/permissions/remove-role</h2>
+                    <h2 id="endpoints-POSTapi-permissions-remove-role">Remove role from user</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Remove a role from a user within a specific tenant context.</p>
 
 <span id="example-requests-POSTapi-permissions-remove-role">
 <blockquote>Example request:</blockquote>
@@ -1678,6 +1613,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/permissions/remove-role" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1"</code></pre></div>
@@ -1689,6 +1625,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -1721,7 +1658,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-permissions-remove-role" data-method="POST"
       data-path="api/permissions/remove-role"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -1751,6 +1688,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/permissions/remove-role</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-permissions-remove-role"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -1789,12 +1738,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-POSTapi-permissions-assign-permission">POST api/permissions/assign-permission</h2>
+                    <h2 id="endpoints-POSTapi-permissions-assign-permission">Assign permission to role</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Assign a permission to a role within a specific tenant context.</p>
 
 <span id="example-requests-POSTapi-permissions-assign-permission">
 <blockquote>Example request:</blockquote>
@@ -1803,6 +1753,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/permissions/assign-permission" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1" \
@@ -1820,6 +1771,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -1858,7 +1810,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-permissions-assign-permission" data-method="POST"
       data-path="api/permissions/assign-permission"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -1888,6 +1840,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/permissions/assign-permission</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-permissions-assign-permission"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -1963,12 +1927,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
         </div>
         </form>
 
-                    <h2 id="endpoints-POSTapi-roles">POST api/roles</h2>
+                    <h2 id="endpoints-POSTapi-roles">Create role</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Create a new role within a specific tenant context.</p>
 
 <span id="example-requests-POSTapi-roles">
 <blockquote>Example request:</blockquote>
@@ -1977,6 +1942,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/roles" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1"</code></pre></div>
@@ -1988,6 +1954,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -2020,7 +1987,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-roles" data-method="POST"
       data-path="api/roles"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -2050,6 +2017,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/roles</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-roles"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
@@ -2088,12 +2067,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
-                    <h2 id="endpoints-POSTapi-roles--role--permissions">POST api/roles/{role}/permissions</h2>
+                    <h2 id="endpoints-POSTapi-roles--role--permissions">Sync role permissions</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
-
+<p>Synchronize permissions for a role within a specific tenant context.</p>
 
 <span id="example-requests-POSTapi-roles--role--permissions">
 <blockquote>Example request:</blockquote>
@@ -2102,6 +2082,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
     "http://laravel-multi-tenant-api-boilerplate.test/api/roles/architecto/permissions" \
+    --header "Authorization: Bearer {YOUR_ACCESS_TOKEN}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --header "X-Tenant-ID: 1"</code></pre></div>
@@ -2113,6 +2094,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 );
 
 const headers = {
+    "Authorization": "Bearer {YOUR_ACCESS_TOKEN}",
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Tenant-ID": "1",
@@ -2145,7 +2127,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 </span>
 <form id="form-POSTapi-roles--role--permissions" data-method="POST"
       data-path="api/roles/{role}/permissions"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
@@ -2175,6 +2157,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <b><code>api/roles/{role}/permissions</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-roles--role--permissions"
+               value="Bearer {YOUR_ACCESS_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_ACCESS_TOKEN}</code></p>
+            </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
