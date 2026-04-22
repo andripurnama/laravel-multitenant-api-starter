@@ -44,6 +44,13 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Logout
+     * 
+     * Revoke the current user's access token.
+     * 
+     * @authenticated
+     */
     public function logout(Request $request): JsonResponse
     {
         $this->authService->logout($request->user());
@@ -74,6 +81,13 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password reset successfully']);
     }
 
+    /**
+     * Send email verification
+     * 
+     * Send a verification email to the authenticated user.
+     * 
+     * @authenticated
+     */
     public function sendVerification(Request $request): JsonResponse
     {
         $this->authService->sendEmailVerification($request->user());
@@ -86,6 +100,13 @@ class AuthController extends Controller
         return response()->json(['message' => 'Email verified successfully']);
     }
 
+    /**
+     * Get user profile
+     * 
+     * Retrieve the authenticated user's profile information including roles and permissions.
+     * 
+     * @authenticated
+     */
     public function profile(Request $request): UserResource
     {
         $user = $request->user()->load('roles.permissions');
