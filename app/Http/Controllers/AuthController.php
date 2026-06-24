@@ -26,7 +26,8 @@ class AuthController extends Controller
         $data = $request->validated();
         $tenantId = $this->tenantContext->getTenant();
         $user = $this->authService->register($data, $tenantId);
-        return (new UserResource($user))->response()->setStatusCode(201);
+
+        return $this->created(new UserResource($user));
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -38,23 +39,21 @@ class AuthController extends Controller
             $tenantId
         );
 
-        return response()->json([
-            'access_token' => $result['access_token'],
-            'token_type' => 'Bearer',
-        ]);
+        return $this->success($result);
     }
 
     /**
      * Logout
-     * 
+     *
      * Revoke the current user's access token.
-     * 
+     *
      * @authenticated
      */
     public function logout(Request $request): JsonResponse
     {
         $this->authService->logout($request->user());
-        return response()->json(['message' => 'Logged out successfully']);
+
+        return $this->success(message: 'Logged out successfully');
     }
 
     public function requestPasswordReset(PasswordResetRequest $request): JsonResponse
@@ -65,7 +64,7 @@ class AuthController extends Controller
             $tenantId
         );
 
-        return response()->json(['message' => 'Password reset email sent']);
+        return $this->success(message: 'Password reset email sent');
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
@@ -78,38 +77,41 @@ class AuthController extends Controller
             $tenantId
         );
 
-        return response()->json(['message' => 'Password reset successfully']);
+        return $this->success(message: 'Password reset successfully');
     }
 
     /**
      * Send email verification
-     * 
+     *
      * Send a verification email to the authenticated user.
-     * 
+     *
      * @authenticated
      */
     public function sendVerification(Request $request): JsonResponse
     {
         $this->authService->sendEmailVerification($request->user());
-        return response()->json(['message' => 'Verification email sent']);
+
+        return $this->success(message: 'Verification email sent');
     }
 
     public function verifyEmail(Request $request, string $token): JsonResponse
     {
         $this->authService->verifyEmail($token);
-        return response()->json(['message' => 'Email verified successfully']);
+
+        return $this->success(message: 'Email verified successfully');
     }
 
     /**
      * Get user profile
-     * 
+     *
      * Retrieve the authenticated user's profile information including roles and permissions.
-     * 
+     *
      * @authenticated
      */
-    public function profile(Request $request): UserResource
+    public function profile(Request $request): JsonResponse
     {
         $user = $request->user()->load('roles.permissions');
-        return new UserResource($user);
+
+        return $this->success(new UserResource($user));
     }
 }
