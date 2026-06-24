@@ -21,9 +21,9 @@ class PermissionController extends Controller
 
     /**
      * Assign role to user
-     * 
+     *
      * Assign a role to a user within a specific tenant context.
-     * 
+     *
      * @authenticated
      */
     public function assignRole(AssignRoleRequest $request): JsonResponse
@@ -36,14 +36,14 @@ class PermissionController extends Controller
             $request->input('tenant_id')
         );
 
-        return response()->json(['message' => 'Role assigned successfully']);
+        return $this->success(message: 'Role assigned successfully');
     }
 
     /**
      * Remove role from user
-     * 
+     *
      * Remove a role from a user within a specific tenant context.
-     * 
+     *
      * @authenticated
      */
     public function removeRole(Request $request): JsonResponse
@@ -56,14 +56,14 @@ class PermissionController extends Controller
             $request->input('tenant_id')
         );
 
-        return response()->json(['message' => 'Role removed successfully']);
+        return $this->success(message: 'Role removed successfully');
     }
 
     /**
      * Assign permission to role
-     * 
+     *
      * Assign a permission to a role within a specific tenant context.
-     * 
+     *
      * @authenticated
      */
     public function assignPermission(AssignPermissionRequest $request): JsonResponse
@@ -74,14 +74,14 @@ class PermissionController extends Controller
             $request->input('tenant_id')
         );
 
-        return response()->json(['message' => 'Permission assigned successfully']);
+        return $this->success(message: 'Permission assigned successfully');
     }
 
     /**
      * Create role
-     * 
+     *
      * Create a new role within a specific tenant context.
-     * 
+     *
      * @authenticated
      */
     public function createRole(Request $request): JsonResponse
@@ -92,14 +92,14 @@ class PermissionController extends Controller
             $request->input('guard_name', 'api')
         );
 
-        return (new RoleResource($role))->response()->setStatusCode(201);
+        return $this->created(new RoleResource($role));
     }
 
     /**
      * Sync role permissions
-     * 
+     *
      * Synchronize permissions for a role within a specific tenant context.
-     * 
+     *
      * @authenticated
      */
     public function syncRolePermissions(Request $request, string $roleName): JsonResponse
@@ -110,6 +110,6 @@ class PermissionController extends Controller
             $request->input('tenant_id')
         );
 
-        return response()->json(['message' => 'Permissions synced successfully']);
+        return $this->success(message: 'Permissions synced successfully');
     }
 }
