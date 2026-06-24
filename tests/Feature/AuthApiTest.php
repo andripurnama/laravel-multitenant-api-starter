@@ -22,6 +22,7 @@ test('user can register via api', function () {
 
     $response->assertCreated()
         ->assertJsonStructure([
+            'success',
             'data' => ['id', 'name', 'email', 'tenant_id'],
         ]);
 
@@ -42,6 +43,7 @@ test('authenticated user can view profile', function () {
 
     $response->assertOk()
         ->assertJsonStructure([
+            'success',
             'data' => ['id', 'name', 'email', 'roles'],
         ])
         ->assertJsonMissing(['password']);
