@@ -2,6 +2,24 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\TenantRepositoryInterface;
+use App\Repositories\Contracts\TokenRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\EloquentPermissionRepository;
+use App\Repositories\Eloquent\EloquentRoleRepository;
+use App\Repositories\Eloquent\EloquentTenantRepository;
+use App\Repositories\Eloquent\EloquentTokenRepository;
+use App\Repositories\Eloquent\EloquentUserRepository;
+use App\Services\AuthService;
+use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Contracts\PermissionServiceInterface;
+use App\Services\Contracts\TokenServiceInterface;
+use App\Services\PermissionService;
+use App\Services\TenantContext;
+use App\Services\TokenService;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,46 +29,46 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(\App\Services\TenantContext::class);
+        $this->app->singleton(TenantContext::class);
 
         $this->app->bind(
-            \App\Repositories\Contracts\UserRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentUserRepository::class
+            UserRepositoryInterface::class,
+            EloquentUserRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\RoleRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentRoleRepository::class
+            RoleRepositoryInterface::class,
+            EloquentRoleRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\TokenRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentTokenRepository::class
+            TokenRepositoryInterface::class,
+            EloquentTokenRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\PermissionRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentPermissionRepository::class
+            PermissionRepositoryInterface::class,
+            EloquentPermissionRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\TenantRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentTenantRepository::class
+            TenantRepositoryInterface::class,
+            EloquentTenantRepository::class
         );
 
         $this->app->bind(
-            \App\Services\Contracts\AuthServiceInterface::class,
-            \App\Services\AuthService::class
+            AuthServiceInterface::class,
+            AuthService::class
         );
 
         $this->app->bind(
-            \App\Services\Contracts\PermissionServiceInterface::class,
-            \App\Services\PermissionService::class
+            PermissionServiceInterface::class,
+            PermissionService::class
         );
 
         $this->app->bind(
-            \App\Services\Contracts\TokenServiceInterface::class,
-            \App\Services\TokenService::class
+            TokenServiceInterface::class,
+            TokenService::class
         );
     }
 
@@ -59,6 +77,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        JsonResource::withoutWrapping();
+
         // Sanctum token expiration is configured in config/sanctum.php
         // or via SANCTUM_EXPIRATION environment variable
     }
