@@ -25,8 +25,11 @@ abstract class AuthException extends Exception
     public function getResponseData(): array
     {
         return [
+            'success' => false,
             'message' => $this->getMessage(),
-            'error' => class_basename($this),
+            'errors' => [
+                'code' => class_basename($this),
+            ],
         ];
     }
 }
