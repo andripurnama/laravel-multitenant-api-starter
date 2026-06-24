@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Exceptions\Auth\CrossTenantAccessException;
+use App\Http\Responses\ApiResponse;
 use App\Repositories\Contracts\TenantRepositoryInterface;
 use App\Services\TenantContext;
 use Closure;
@@ -21,13 +22,13 @@ class TenantContextMiddleware
     {
         $tenantId = $request->header('X-Tenant-ID');
 
-        if (!$tenantId) {
-            return response()->json(['error' => 'Tenant ID required'], 400);
+        if (! $tenantId) {
+            return ApiResponse::error('Tenant ID required', 400);
         }
 
         $tenant = $this->tenantRepository->find((int) $tenantId);
 
-        if (!$tenant) {
+        if (! $tenant) {
             throw new CrossTenantAccessException("Tenant {$tenantId} not found");
         }
 
