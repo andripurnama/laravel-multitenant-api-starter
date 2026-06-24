@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Http\Responses\ApiResponse;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -18,8 +19,8 @@ class RoleMiddleware
             ? $this->hasAllRoles($user, $roleArray)
             : $this->hasAnyRole($user, $roleArray);
 
-        if (!$hasAccess) {
-            return response()->json(['error' => 'Insufficient permissions'], 403);
+        if (! $hasAccess) {
+            return ApiResponse::error('Insufficient permissions', 403);
         }
 
         return $next($request);
@@ -32,16 +33,18 @@ class RoleMiddleware
                 return true;
             }
         }
+
         return false;
     }
 
     private function hasAllRoles($user, array $roles): bool
     {
         foreach ($roles as $role) {
-            if (!$user->hasRole($role)) {
+            if (! $user->hasRole($role)) {
                 return false;
             }
         }
+
         return true;
     }
 }
