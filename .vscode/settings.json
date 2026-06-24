@@ -1,0 +1,23 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "[php]": {
+    "editor.defaultFormatter": "open-southeners.laravel-pint",
+    "editor.formatOnSave": true
+  },
+  "laravel-pint.enable": true,
+  "laravel-pint.executablePath": "${workspaceFolder}/vendor/bin/pint",
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[blade]": {
+    "editor.formatOnSave": true
+  }
+}
