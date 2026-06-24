@@ -9,7 +9,6 @@ use App\Exceptions\Auth\InvalidResetTokenException;
 use App\Exceptions\Auth\UserNotFoundException;
 use App\Models\User;
 use App\Repositories\Contracts\TenantRepositoryInterface;
-use App\Repositories\Contracts\TokenRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\AuthServiceInterface;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +19,6 @@ class AuthService implements AuthServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
-        private readonly TokenRepositoryInterface $tokenRepository,
         private readonly TenantRepositoryInterface $tenantRepository
     ) {}
 
@@ -48,12 +46,12 @@ class AuthService implements AuthServiceInterface
     }
 
     /**
-     * Authenticate user and issue tokens
+     * Authenticate user and issue token
      *
      * @param  string  $email  User email
      * @param  string  $password  User password
      * @param  int  $tenantId  Tenant identifier
-     * @return array Token response with access_token, refresh_token, expires_in
+     * @return array Token response with access_token and token_type
      */
     public function login(string $email, string $password, int $tenantId): array
     {
@@ -73,84 +71,26 @@ class AuthService implements AuthServiceInterface
             throw new InvalidCredentialsException;
         }
 
-        // Create token using Passport
-        $tokenResult = $user->createToken('auth_token');
-        $token = $tokenResult->token;
-
-        // Save the token
-        $token->save();
-
-        // Get refresh token
-        $refreshToken = $token->refreshToken;
+        // Create token using Sanctum
+        $token = $user->createToken('auth_token');
 
         return [
-            'access_token' => $tokenResult->accessToken,
-            'refresh_token' => $refreshToken ? $refreshToken->id : null,
+            'access_token' => $token->plainTextToken,
             'token_type' => 'Bearer',
-            'expires_in' => $token->expires_at ? $token->expires_at->diffInSeconds(now()) : null,
         ];
     }
 
     /**
-     * Refresh access token using refresh token
-     *
-     * @param  string  $refreshToken  Refresh token
-     * @return array Token response with access_token, refresh_token, expires_in
-     */
-    public function refreshToken(string $refreshToken): array
-    {
-        // Find the access token by refresh token
-        $token = $this->tokenRepository->findByRefreshToken($refreshToken);
-
-        if (! $token) {
-            throw new InvalidCredentialsException('Invalid refresh token');
-        }
-
-        // Check if token is revoked
-        if ($token->revoked) {
-            throw new InvalidCredentialsException('Refresh token has been revoked');
-        }
-
-        // Check if token has expired
-        if ($token->expires_at && $token->expires_at->isPast()) {
-            throw new InvalidCredentialsException('Refresh token has expired');
-        }
-
-        // Get the user
-        $user = $this->userRepository->find($token->user_id);
-
-        if (! $user) {
-            throw new UserNotFoundException($token->user_id);
-        }
-
-        // Revoke the old token
-        $this->tokenRepository->revoke($token);
-
-        // Create a new token
-        $tokenResult = $user->createToken('auth_token');
-        $newToken = $tokenResult->token;
-        $newToken->save();
-
-        // Get new refresh token
-        $newRefreshToken = $newToken->refreshToken;
-
-        return [
-            'access_token' => $tokenResult->accessToken,
-            'refresh_token' => $newRefreshToken ? $newRefreshToken->id : null,
-            'token_type' => 'Bearer',
-            'expires_in' => $newToken->expires_at ? $newToken->expires_at->diffInSeconds(now()) : null,
-        ];
-    }
-
-    /**
-     * Revoke user's tokens (logout)
+     * Revoke user's current token (logout)
      *
      * @param  User  $user  Authenticated user
      */
     public function logout(User $user): bool
     {
-        // Revoke all tokens for the user
-        return $this->tokenRepository->revokeAllForUser($user->id) > 0;
+        // Revoke current access token
+        $user->currentAccessToken()->delete();
+        
+        return true;
     }
 
     /**
@@ -247,7 +187,7 @@ class AuthService implements AuthServiceInterface
             ->delete();
 
         // Revoke all existing tokens for the user (Requirement 13.5)
-        $this->tokenRepository->revokeAllForUser($user->id);
+        $user->tokens()->delete();
 
         return true;
     }

@@ -26,8 +26,12 @@ class EloquentRoleRepository implements RoleRepositoryInterface
 
     public function assignToUser(User $user, Role $role): void
     {
-        // Attach role with tenant_id directly to the pivot table
-        $user->roles()->attach($role->id, ['tenant_id' => $user->tenant_id]);
+        // Set the team (tenant) context for Spatie Permission
+        // Spatie Permission uses teams feature for multi-tenancy
+        setPermissionsTeamId($user->tenant_id);
+
+        // Use Spatie's assignRole method which handles the pivot table correctly
+        $user->assignRole($role);
     }
 
     public function removeFromUser(User $user, Role $role): void

@@ -14,7 +14,7 @@ return [
     'title' => config('app.name').' API Documentation',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => '',
+    'description' => 'Multi-tenant API with header-based tenant isolation.',
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
     'intro_text' => <<<'INTRO'
@@ -22,6 +22,24 @@ return [
 
             <aside>As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
             You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
+
+            ## Multi-Tenant Architecture
+
+            **Important:** All API requests must include the `X-Tenant-ID` header to specify the tenant context.
+
+            ```
+            X-Tenant-ID: 1
+            ```
+
+            Without this header, requests will fail with a 400 error: `{"error": "Tenant ID required"}`
+
+            ### Test Tenant
+            A test tenant is available for development:
+            - **Tenant ID**: 1
+            - **Tenant Name**: Test Tenant
+            - **Tenant Slug**: test-tenant
+
+            Use `X-Tenant-ID: 1` in all your API requests during testing.
         INTRO,
 
     // The base URL displayed in the docs.
@@ -105,7 +123,7 @@ return [
     // How is your API authenticated? This information will be used in the displayed docs, generated examples and response calls.
     'auth' => [
         // Set this to true if ANY endpoints in your API use authentication.
-        'enabled' => false,
+        'enabled' => true,
 
         // Set this to true if your API should be authenticated by default. If so, you must also set `enabled` (above) to true.
         // You can then use @unauthenticated or @authenticated on individual endpoints to change their status from the default.
@@ -115,7 +133,7 @@ return [
         'in' => AuthIn::BEARER->value,
 
         // The name of the auth parameter (e.g. token, key, apiKey) or header (e.g. Authorization, Api-Key).
-        'name' => 'key',
+        'name' => 'Authorization',
 
         // The value of the parameter to be used by Scribe to authenticate response calls.
         // This will NOT be included in the generated documentation. If empty, Scribe will use a random value.
@@ -123,10 +141,10 @@ return [
 
         // Placeholder your users will see for the auth parameter in the example requests.
         // Set this to null if you want Scribe to use a random value as placeholder instead.
-        'placeholder' => '{YOUR_AUTH_KEY}',
+        'placeholder' => '{YOUR_ACCESS_TOKEN}',
 
         // Any extra authentication-related info for your users. Markdown and HTML are supported.
-        'extra_info' => 'You can retrieve your token by visiting your dashboard and clicking <b>Generate API token</b>.',
+        'extra_info' => 'You can retrieve your access token by logging in via the <code>POST /api/auth/login</code> endpoint. The token should be included in the <code>Authorization</code> header as a Bearer token: <code>Authorization: Bearer {token}</code>.',
     ],
 
     // Example requests for each endpoint will be shown in each of these languages.
@@ -221,6 +239,7 @@ return [
             Strategies\StaticData::withSettings(data: [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
+                'X-Tenant-ID' => '1',
             ]),
         ],
         'urlParameters' => [

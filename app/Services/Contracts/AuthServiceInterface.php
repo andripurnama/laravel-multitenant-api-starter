@@ -17,25 +17,17 @@ interface AuthServiceInterface
     public function register(array $data, int $tenantId): User;
 
     /**
-     * Authenticate user and issue tokens
+     * Authenticate user and issue token
      *
      * @param  string  $email  User email
      * @param  string  $password  User password
      * @param  int  $tenantId  Tenant identifier
-     * @return array Token response with access_token, refresh_token, expires_in
+     * @return array Token response with access_token and token_type
      */
     public function login(string $email, string $password, int $tenantId): array;
 
     /**
-     * Refresh access token using refresh token
-     *
-     * @param  string  $refreshToken  Refresh token
-     * @return array Token response with access_token, refresh_token, expires_in
-     */
-    public function refreshToken(string $refreshToken): array;
-
-    /**
-     * Revoke user's tokens (logout)
+     * Revoke user's current token (logout)
      *
      * @param  User  $user  Authenticated user
      */

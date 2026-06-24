@@ -1,40 +1,48 @@
 <?php
 
 use App\Models\User;
-use App\Repositories\Eloquent\EloquentTokenRepository;
-use Database\Factories\TokenFactory;
-use Laravel\Passport\Token;
+use Laravel\Sanctum\PersonalAccessToken;
 
-test('findByUser returns user tokens', function () {
+test('user can create personal access token', function () {
     $user = User::factory()->create();
     
-    TokenFactory::new()->count(3)->create(['user_id' => $user->id]);
-    TokenFactory::new()->count(2)->create(['user_id' => User::factory()->create()->id]);
+    $token = $user->createToken('test-token');
 
-    $repository = new EloquentTokenRepository();
-    $tokens = $repository->findByUser($user->id);
-
-    expect($tokens)->toHaveCount(3)
-        ->and($tokens->every(fn($token) => $token->user_id === $user->id))->toBeTrue();
+    expect($token)->toBeInstanceOf(\Laravel\Sanctum\NewAccessToken::class)
+        ->and($token->plainTextToken)->toBeString()
+        ->and($token->accessToken)->toBeInstanceOf(PersonalAccessToken::class);
 });
 
-test('revoke marks token as revoked', function () {
-    $token = TokenFactory::new()->create(['revoked' => false]);
-
-    $repository = new EloquentTokenRepository();
-    $result = $repository->revoke($token);
-
-    expect($result)->toBeTrue();
-    expect($token->fresh()->revoked)->toBeTrue();
-});
-
-test('revokeAllForUser revokes all tokens', function () {
+test('user can have multiple tokens', function () {
     $user = User::factory()->create();
-    TokenFactory::new()->count(3)->create(['user_id' => $user->id, 'revoked' => false]);
+    
+    $user->createToken('token-1');
+    $user->createToken('token-2');
+    $user->createToken('token-3');
 
-    $repository = new EloquentTokenRepository();
-    $count = $repository->revokeAllForUser($user->id);
+    expect($user->tokens)->toHaveCount(3);
+});
 
-    expect($count)->toBe(3);
-    expect(Token::where('user_id', $user->id)->where('revoked', false)->count())->toBe(0);
+test('user can revoke specific token', function () {
+    $user = User::factory()->create();
+    
+    $token1 = $user->createToken('token-1');
+    $token2 = $user->createToken('token-2');
+
+    $user->tokens()->where('id', $token1->accessToken->id)->delete();
+
+    expect($user->fresh()->tokens)->toHaveCount(1)
+        ->and($user->fresh()->tokens->first()->id)->toBe($token2->accessToken->id);
+});
+
+test('user can revoke all tokens', function () {
+    $user = User::factory()->create();
+    
+    $user->createToken('token-1');
+    $user->createToken('token-2');
+    $user->createToken('token-3');
+
+    $user->tokens()->delete();
+
+    expect($user->fresh()->tokens)->toHaveCount(0);
 });

@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "open-southeners.laravel-pint",
+    "bmewburn.vscode-intelephense-client",
+    "editorconfig.editorconfig",
+    "onecentlin.laravel-blade"
+  ]
+}
